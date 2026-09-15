@@ -32,11 +32,28 @@ metadata:
 
 ## 워크플로
 
-### 1. 자산 수집
+### 1. 대상 CSP 확정 → 해당 레퍼런스 1개만 읽기
 
-입력이 무엇인지부터 확인한다. 흔한 경로는 `references/source-extraction.md`에
-CLI 명령과 함께 정리되어 있다 — NCP API/CLI, AWS CLI, Terraform state, 자산 엑셀,
-콘솔 스크린샷, 사용자의 말로 된 설명.
+CSP마다 네트워크 계층 구조와 제약이 다르다. 대상을 확정한 뒤
+`references/csp/<provider>.md` **하나만** 읽는다. 다른 CSP 파일은 읽지 않는다.
+
+| provider | 파일 | 검증 상태 |
+|---|---|---|
+| `ncp` | `references/csp/ncp.md` | 부분 검증 |
+| `aws` | `references/csp/aws.md` | 부분 검증 |
+| `azure` | `references/csp/azure.md` | 미검증 |
+| `gcp` | `references/csp/gcp.md` | 미검증 |
+
+- 파일이 **미검증**이면, 그 CSP 특유의 제약은 확인되지 않았음을 사용자에게 먼저 알린다.
+- 해당 파일이 아예 없는 CSP면 공통 규칙으로 진행하되 같은 안내를 한다.
+- 하이브리드·멀티 CSP 구성이면 관련 파일을 모두 읽되, 그림에서 CSP 경계를
+  최상위 그룹으로 분리한다.
+
+### 2. 자산 수집
+
+입력이 무엇인지부터 확인한다. CSP별 CLI 명령은 방금 읽은 `csp/<provider>.md`의 "자산 수집" 절에 있다.
+Terraform state, 자산 엑셀, 콘솔 스크린샷, 말로 된 설명처럼 CSP와 무관한 경로는
+`references/source-extraction.md`를 본다.
 
 **정보가 부족하면 그리지 말고 먼저 물어본다.** 최소한 이 네 가지는 있어야 한다.
 
@@ -45,7 +62,7 @@ CLI 명령과 함께 정리되어 있다 — NCP API/CLI, AWS CLI, Terraform sta
 - 리소스 간 연결과 포트
 - 외부 진입점 (인터넷, VPN, 전용선, 관리자 접근 경로)
 
-### 2. 인벤토리 JSON 작성
+### 3. 인벤토리 JSON 작성
 
 스키마 전문과 예시는 `references/inventory-schema.md`를 읽는다. 요약하면:
 
@@ -66,7 +83,7 @@ CLI 명령과 함께 정리되어 있다 — NCP API/CLI, AWS CLI, Terraform sta
 - `label`의 `\n`은 줄바꿈으로 렌더된다. 2줄째에 스펙·역할을 넣으면 읽기 좋다.
 - `kind` 값에 따라 색과 모양이 정해진다. 목록은 `references/layout-and-style.md` 참고.
 
-### 3. 렌더
+### 4. 렌더
 
 ```bash
 python3 scripts/render_drawio.py inventory.json -o 구성도.drawio
@@ -76,16 +93,19 @@ python3 scripts/render_drawio.py inventory.json -f mermaid
 의존성 없음(Python 3.8+ 표준 라이브러리만). 실패하면 대개 JSON 구조 문제이므로
 에러 메시지를 그대로 읽고 인벤토리를 고친다.
 
-### 4. 검수 — 넘기기 전에 반드시 확인
+### 5. 검수 — 넘기기 전에 반드시 확인
 
 - [ ] 인벤토리에 있는 모든 리소스가 그림에 있는가 (누락 = 사고)
 - [ ] 연결이 없는 고아 노드가 있는가. 있다면 정말 고립된 자산인지, 아니면 연결을 빠뜨린 건지
 - [ ] 외부에서 들어오는 경로가 전부 표시됐는가 (인터넷, VPN, 전용선, 관리자 SSH)
 - [ ] 서브넷 CIDR과 존이 라벨에 들어갔는가
 - [ ] 이중화 구성이 이중화로 보이는가 (Active/Standby 표기)
+- [ ] `csp/<provider>.md`의 "구성도에서 틀리기 쉬운 것"을 그림과 대조했는가
 - [ ] **추측으로 채운 항목을 사용자에게 명시했는가**
+- [ ] 이번 작업에서 새로 알게 된 CSP 제약이 있다면, `csp/<provider>.md`에 추가할
+      내용을 사용자에게 제안했는가 (이 스킬은 이렇게 보강된다)
 
-### 5. 전달
+### 6. 전달
 
 `.drawio` 파일 경로, Mermaid 블록, 그리고 **추측했거나 확인이 필요한 항목 목록**을
 같이 준다. 마지막 항목을 생략하지 않는다.
@@ -101,7 +121,11 @@ python3 scripts/render_drawio.py inventory.json -f mermaid
 
 ## 레퍼런스
 
+- `references/csp/<provider>.md` — **CSP별 계층 매핑, 수집 명령, 제약.** 작업 시작 시
+  대상 CSP 파일 하나만 읽는다
 - `references/inventory-schema.md` — 스키마 전문, 필드별 규칙, 전체 예시
-- `references/source-extraction.md` — NCP/AWS CLI·Terraform state에서 자산 뽑는 명령
+- `references/source-extraction.md` — CSP 무관 수집 경로(Terraform, 엑셀, 구두 설명)와
+  수집 후 공통 정리 절차
 - `references/layout-and-style.md` — kind 팔레트, 레이아웃 규칙, CSP 공식 아이콘으로
   바꾸는 법, PNG/PDF/PPT 변환
+- `references/csp/_template.md` — 새 CSP 레퍼런스를 추가할 때 쓰는 빈 양식

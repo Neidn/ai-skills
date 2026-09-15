@@ -1,75 +1,71 @@
-# 자산 수집 경로별 요령
+# 자산 수집 — CSP 무관 경로
 
-인벤토리 JSON을 채우기 위해 원본을 뽑는 방법. 명령의 정확한 옵션명은 CLI 버전마다
-다르므로, 실행 전 `--help`로 확인하고 결과가 비면 리전 코드부터 의심한다.
+CSP별 CLI 명령은 `csp/<provider>.md`에 있다. 이 파일은 어느 CSP에서든 같은
+방식으로 다루는 입력과, 수집이 끝난 뒤의 공통 정리 절차를 다룬다.
 
 ## 1. Terraform state — 가장 정확
 
-IaC로 관리되는 환경이면 이게 1순위다. 실제 배포 상태와 일치하고 관계까지 들어 있다.
+IaC로 관리되는 환경이면 이게 1순위다. 실제 배포 상태와 일치하고 리소스 간 참조
+관계까지 들어 있다.
 
 ```bash
 terraform show -json > tfstate.json
 
-# 리소스 타입별 개수 파악
+# 어떤 리소스가 얼마나 있는지
 jq -r '.values.root_module.resources[].type' tfstate.json | sort | uniq -c
 
-# 서버 목록
+# 서버류 목록 (CSP에 따라 타입명이 다르므로 정규식으로 훑는다)
 jq -r '.values.root_module.resources[]
        | select(.type|test("server|instance"))
        | [.name, .values.name, .values.subnet_no // .values.subnet_id] | @tsv' tfstate.json
 ```
 
-`depends_on`과 참조 관계가 그대로 `edges`가 된다.
+모듈을 쓰는 구성이면 `root_module.child_modules[]` 안에도 리소스가 있으므로
+재귀로 훑어야 한다. `jq '[.. | .resources? // empty | .[]]'`.
 
-## 2. NCP CLI
+리소스 간 참조(`subnet_id`, `target_group`, `access_control_group`)가 그대로
+`edges`의 근거가 된다. 다만 Terraform으로 관리되지 않는 수동 생성 리소스는 여기
+안 잡히므로, **state만 믿지 말고 콘솔이나 CLI 목록과 개수를 대조**한다.
 
-```bash
-# 네트워크 계층
-ncloud vpc getVpcList --regionCode KR
-ncloud vpc getSubnetList --regionCode KR --vpcNo <VPC_NO>
-ncloud vpc getNatGatewayInstanceList --regionCode KR
+## 2. 자산 엑셀 / CSV
 
-# 컴퓨트
-ncloud vserver getServerInstanceList --regionCode KR
+MSP 실무에서 가장 흔한 입력이다.
 
-# 로드밸런서
-ncloud vloadbalancer getLoadBalancerInstanceList --regionCode KR
+- 헤더를 먼저 확인하고 이름·사양·IP·용도·서브넷 컬럼을 매핑한다
+- 시트가 여러 개면 어느 시트가 최신인지 묻는다. 대개 여러 버전이 섞여 있다
+- 폐기·중지된 자산이 행으로 남아 있는 경우가 많다. 상태 컬럼을 확인하고,
+  없으면 물어본다
 
-# ACG (보안 정책은 그림에 직접 안 그리지만 연결 관계 추론에 쓴다)
-ncloud vserver getAccessControlGroupList --regionCode KR
-ncloud vserver getAccessControlGroupRuleList --accessControlGroupNo <ACG_NO>
-```
+## 3. 콘솔 스크린샷 / 말로 된 설명
 
-- 서브넷 목록에서 `subnetType`(PUBLIC/PRIVATE)을 그대로 `kind`에 매핑한다.
-- ACG 인바운드 규칙의 출발지/포트가 `edges`의 근거가 된다. 0.0.0.0/0 인바운드가 있는
-  리소스는 인터넷과 연결한다.
-- 콘솔에서 CSV로 내려받은 자산 목록이 있으면 CLI보다 그쪽이 빠르다.
+가장 정보가 부족한 입력이다. 여기서 추측으로 메우면 틀린 구성도가 나온다.
 
-## 3. AWS CLI
-
-```bash
-aws ec2 describe-vpcs --query 'Vpcs[].{id:VpcId,cidr:CidrBlock,name:Tags[?Key==`Name`]|[0].Value}'
-aws ec2 describe-subnets --query 'Subnets[].{id:SubnetId,vpc:VpcId,cidr:CidrBlock,az:AvailabilityZone,public:MapPublicIpOnLaunch}'
-aws ec2 describe-instances --query 'Reservations[].Instances[].{id:InstanceId,type:InstanceType,subnet:SubnetId,name:Tags[?Key==`Name`]|[0].Value}'
-aws elbv2 describe-load-balancers --query 'LoadBalancers[].{name:LoadBalancerName,scheme:Scheme,subnets:AvailabilityZones[].SubnetId}'
-aws rds describe-db-instances --query 'DBInstances[].{id:DBInstanceIdentifier,engine:Engine,subnet:DBSubnetGroup.Subnets[].SubnetIdentifier,multiaz:MultiAZ}'
-```
-
-`MapPublicIpOnLaunch`가 true면 `kind: "public"`, 아니면 `private`로 본다.
-LB의 `Scheme`이 `internet-facing`이면 인터넷 노드와 연결한다.
-
-## 4. 사람이 준 표 / 스크린샷 / 말로 된 설명
-
-MSP 실무에서 가장 흔한 입력이다. 이 경우 **추측한 부분을 반드시 분리해서 보고한다.**
-
-- 자산 엑셀·CSV: 헤더를 먼저 확인하고 이름/사양/IP/용도 컬럼을 매핑한다.
-- 서브넷 정보가 없으면 IP 대역으로 역추정하되, 추정임을 명시한다.
+- 서브넷 정보가 없으면 IP 대역으로 역추정하되 **추정임을 명시**한다
 - 연결 관계가 안 적혀 있으면 일반적인 3-tier를 가정하지 말고 물어본다.
-  틀린 연결선은 없는 연결선보다 나쁘다.
+  틀린 연결선은 없는 연결선보다 나쁘다
+- 이중화 여부는 반드시 확인한다. 그림에서 가장 눈에 띄는 정보인데 틀리기도 쉽다
 
-## 5. 수집 후 공통 정리
+## 4. 수집 후 공통 정리
 
-1. 리소스마다 `id` 슬러그를 부여한다 (`web01`, `sbn_db`).
-2. 서브넷 → VPC → 리전 순으로 부모를 확정한다.
+1. 리소스마다 읽기 쉬운 `id` 슬러그를 부여한다 (`web01`, `sbn_db`).
+   실제 리소스 ID는 `label` 2번째 줄로 보낸다.
+2. 서브넷 → VPC → 리전 순으로 부모를 확정한다. **계층 순서는 CSP마다 다르므로**
+   `csp/<provider>.md`의 규칙을 따른다.
 3. 부모를 못 찾은 리소스는 버리지 말고 "미분류" 그룹에 모아 사용자에게 확인받는다.
 4. 종료·중지 상태 리소스는 제외하거나 라벨에 `(중지)`를 붙인다. 조용히 섞지 않는다.
+5. 수집한 리소스 개수와 그림에 들어간 노드 개수를 비교한다. 다르면 이유를 설명한다.
+
+## 5. 출처 기록
+
+인벤토리 JSON 상단에 수집 시점과 출처를 남긴다. 다음에 갱신할 때 어디서부터
+다시 봐야 하는지 알 수 있다.
+
+```json
+{
+  "title": "○○기관 운영 구성도 (2026-09-15 기준)",
+  "provider": "ncp",
+  "_source": "terraform show -json + 콘솔 자산목록 대조, 연결관계는 담당자 확인"
+}
+```
+
+`_`로 시작하는 키는 렌더러가 무시하므로 메모로 자유롭게 쓸 수 있다.
