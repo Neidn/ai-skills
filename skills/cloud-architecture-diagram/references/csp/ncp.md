@@ -20,7 +20,7 @@
 | Object Storage | `storage` | VPC 밖. Region 그룹 직계 자식 |
 | NAS | `storage` | |
 | Ncloud Kubernetes Service | `k8s` | 클러스터를 그룹으로, 노드풀을 하위 그룹으로 |
-| IPsec VPN Gateway | `gateway` | |
+| IPsec VPN Gateway | `gateway` | MCP로 상세 확인 불가. Route Table 기반으로만 그린다 (3장 참고) |
 | Cloud Connect / 전용회선 | `network` | 온프레미스 그룹과 edge로 연결 |
 | WAF / Security Monitoring | `security` | |
 | Cloud Insight | `monitoring` | |
@@ -32,6 +32,8 @@
 ncloud vpc getVpcList --regionCode KR
 ncloud vpc getSubnetList --regionCode KR --vpcNo <VPC_NO>
 ncloud vpc getNatGatewayInstanceList --regionCode KR
+ncloud vpc getRouteTableList --regionCode KR --vpcNo <VPC_NO>
+ncloud vpc getRouteTableRuleList --regionCode KR --routeTableNo <ROUTE_TABLE_NO>
 
 # 컴퓨트 / LB
 ncloud vserver getServerInstanceList --regionCode KR
@@ -79,6 +81,20 @@ ALB를 같이 두지만, NCP는 LB 전용 서브넷과 NAT 전용 서브넷을 �
 구성도에 보안 정책을 넣어야 한다면 ACG는 서버 노드 쪽, NACL은 서브넷 박스 쪽에
 주석으로 붙인다. 둘을 하나의 "방화벽" 박스로 그리면 검토자가 적용 범위를 오해한다.
 규칙 내용 자체는 구성도가 아니라 별도 표로 빼는 편이 낫다.
+
+### IPsec VPN Gateway는 Route Table로만 파악한다
+
+MCP로는 터널 상세정보(피어 IP, 터널 상태, 암호화·인증 설정 등)를 확인할 수 없다.
+확인 안 되는 값을 추측해서 채우지 말고, **Route Table에서 VPN Gateway를 향하는
+라우트만 근거로** 다음 두 가지만 그린다.
+
+- **위치** — 어느 VPC의 어느 라우트 테이블에 VPN GW로 향하는 라우트가 있는지 (해당
+  라우트 테이블이 연결된 서브넷)
+- **네트워크 흐름** — 그 라우트의 목적지 CIDR이 어느 대역인지 (온프레미스로 나가는
+  트래픽 범위)
+
+터널 구성, 피어 장비, 암호화 방식 등 라우트 테이블에 없는 정보는 구성도에 넣지
+않는다. 넣어야 한다면 "⚠ 확인 필요"로 표시하고 별도로 확인받는다.
 
 ### Classic 환경은 계층이 다르다
 
