@@ -38,6 +38,7 @@ cd skills && zip -r ../cloud-architecture-diagram.zip cloud-architecture-diagram
 | 스킬 | 설명 |
 |---|---|
 | `cloud-architecture-diagram` | CSP 자산 목록을 인벤토리 JSON으로 정규화해 편집 가능한 draw.io 구성도와 Mermaid로 렌더 |
+| `ncp-cloud-insight-registration` | NCP Server/LB/DB를 Cloud Insight 모니터링 대상으로 등록하는 절차 안내 |
 
 ## 구조
 
