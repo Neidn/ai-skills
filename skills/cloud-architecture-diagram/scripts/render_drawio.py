@@ -66,6 +66,7 @@ PAD = 20
 HEADER = 34
 MAX_COLS_LEAF = 3   # leaf children per row
 MAX_COLS_GROUP = 2  # group children per row
+MAX_COLS_ROOT = 2   # top-level boxes per row
 
 
 class Box:
@@ -96,6 +97,37 @@ def label_height(label):
     return max(NODE_H, 28 + lines * LINE_H)
 
 
+def grid_place(items, cols, gap):
+    """Position `items` (objects with .w/.h) on a grid, mutating .x/.y as
+    offsets from (0, 0). Each item is centered within its column/row cell,
+    and an incomplete last row is centered under the full grid width instead
+    of hugging the left edge. Returns the grid's (content_w, content_h)."""
+    n = len(items)
+    rows = math.ceil(n / cols)
+    col_w = [0] * cols
+    row_h = [0] * rows
+    for i, item in enumerate(items):
+        r, c = divmod(i, cols)
+        col_w[c] = max(col_w[c], item.w)
+        row_h[r] = max(row_h[r], item.h)
+
+    content_w = sum(col_w) + gap * (cols - 1)
+    last_row_n = n - (rows - 1) * cols
+    last_row_w = sum(col_w[:last_row_n]) + gap * (last_row_n - 1)
+    last_row_offset = (content_w - last_row_w) / 2 if last_row_n < cols else 0
+
+    for i, item in enumerate(items):
+        r, c = divmod(i, cols)
+        col_x = sum(col_w[:c]) + gap * c
+        row_y = sum(row_h[:r]) + gap * r
+        extra = last_row_offset if r == rows - 1 else 0
+        item.x = round(col_x + extra + (col_w[c] - item.w) / 2)
+        item.y = round(row_y + (row_h[r] - item.h) / 2)
+
+    content_h = sum(row_h) + gap * (rows - 1)
+    return content_w, content_h
+
+
 def layout(box):
     """Bottom-up sizing. Child x/y are relative to the parent box."""
     if not box.children:
@@ -107,25 +139,26 @@ def layout(box):
 
     all_leaves = all(not c.children for c in box.children)
     max_cols = MAX_COLS_LEAF if all_leaves else MAX_COLS_GROUP
-    n = len(box.children)
-    cols = min(max_cols, n)
-    rows = math.ceil(n / cols)
+    cols = min(max_cols, len(box.children))
 
-    # Uniform column widths / row heights keep the result readable.
-    col_w = [0] * cols
-    row_h = [0] * rows
-    for i, child in enumerate(box.children):
-        r, c = divmod(i, cols)
-        col_w[c] = max(col_w[c], child.w)
-        row_h[r] = max(row_h[r], child.h)
+    content_w, content_h = grid_place(box.children, cols, GAP)
+    for child in box.children:
+        child.x += PAD
+        child.y += HEADER
 
-    for i, child in enumerate(box.children):
-        r, c = divmod(i, cols)
-        child.x = PAD + sum(col_w[:c]) + GAP * c
-        child.y = HEADER + sum(row_h[:r]) + GAP * r
+    box.w = PAD * 2 + content_w
+    box.h = HEADER + PAD + content_h
 
-    box.w = PAD * 2 + sum(col_w) + GAP * (cols - 1)
-    box.h = HEADER + PAD + sum(row_h) + GAP * (rows - 1)
+
+def absolute_positions(box, offset_x=0, offset_y=0, out=None):
+    """Map every box id to its absolute (x, y, w, h) on the canvas."""
+    if out is None:
+        out = {}
+    ax, ay = box.x + offset_x, box.y + offset_y
+    out[box.id] = (ax, ay, box.w, box.h)
+    for child in box.children:
+        absolute_positions(child, ax, ay, out)
+    return out
 
 
 def style_for(box):
@@ -174,6 +207,30 @@ EDGE_STYLE = {
 }
 
 
+def connection_style(abs_pos, src, dst):
+    """Fix the edge's exit/entry side to whichever cardinal direction points
+    from source to target, instead of leaving it to draw.io's free-floating
+    connection (which tends to cut straight through boxes sitting between
+    them). Not a full obstacle-avoiding router, just a bias toward the
+    natural side."""
+    if src not in abs_pos or dst not in abs_pos:
+        return ""
+    sx, sy, sw, sh = abs_pos[src]
+    tx, ty, tw, th = abs_pos[dst]
+    dx = (tx + tw / 2) - (sx + sw / 2)
+    dy = (ty + th / 2) - (sy + sh / 2)
+    if abs(dx) >= abs(dy):
+        ex, ey = (1, 0.5) if dx >= 0 else (0, 0.5)
+        nx, ny = (0, 0.5) if dx >= 0 else (1, 0.5)
+    else:
+        ex, ey = (0.5, 1) if dy >= 0 else (0.5, 0)
+        nx, ny = (0.5, 0) if dy >= 0 else (0.5, 1)
+    return (
+        "exitX=%g;exitY=%g;exitDx=0;exitDy=0;"
+        "entryX=%g;entryY=%g;entryDx=0;entryDy=0;"
+    ) % (ex, ey, nx, ny)
+
+
 def render_drawio(inv):
     seq = iter(range(1, 100000))
     roots = [build(n, seq) for n in inv.get("nodes", [])]
@@ -184,18 +241,16 @@ def render_drawio(inv):
     for box in roots:
         layout(box)
 
-    # Top-level boxes are stacked left to right, wrapping every 2.
-    x = 40
-    y = 40
-    row_max_h = 0
-    for i, box in enumerate(roots):
-        if i and i % 2 == 0:
-            x = 40
-            y += row_max_h + 40
-            row_max_h = 0
-        box.x, box.y = x, y
-        x += box.w + 40
-        row_max_h = max(row_max_h, box.h)
+    # Top-level boxes sit on the same centered grid as any other container.
+    cols = min(MAX_COLS_ROOT, len(roots))
+    grid_place(roots, cols, 40)
+    for box in roots:
+        box.x += 40
+        box.y += 40
+
+    abs_pos = {}
+    for box in roots:
+        absolute_positions(box, 0, 0, abs_pos)
 
     mxfile = ET.Element("mxfile", {"host": "app.diagrams.net"})
     diagram = ET.SubElement(
@@ -233,6 +288,7 @@ def render_drawio(inv):
                 print("warning: edge endpoint %r not found in the diagram" % end,
                       file=sys.stderr)
         style = EDGE_STYLE.get(edge.get("style", "solid"), EDGE_STYLE["solid"])
+        style += connection_style(abs_pos, src, dst)
         cell = ET.SubElement(
             root, "mxCell",
             {"id": "e%d" % i, "value": html_label(edge.get("label", "")), "style": style,

@@ -100,6 +100,10 @@ python3 scripts/render_drawio.py inventory.json -f mermaid
 - [ ] 외부에서 들어오는 경로가 전부 표시됐는가 (인터넷, VPN, 전용선, 관리자 SSH)
 - [ ] 서브넷 CIDR과 존이 라벨에 들어갔는가
 - [ ] 이중화 구성이 이중화로 보이는가 (Active/Standby 표기)
+- [ ] 박스가 그리드에 정렬되고 한쪽으로 쏠려 보이지 않는가 — 쏠려 보이면 인벤토리가
+      아니라 `render_drawio.py`의 정렬 로직 문제일 수 있다
+- [ ] 트래픽 흐름선이 관련 없는 다른 박스를 가로지르지 않는가 — 가로지르면 draw.io에서
+      웨이포인트를 수동으로 조정한다 (`references/layout-and-style.md` 참고)
 - [ ] `csp/<provider>.md`의 "구성도에서 틀리기 쉬운 것"을 그림과 대조했는가
 - [ ] **추측으로 채운 항목을 사용자에게 명시했는가**
 - [ ] 이번 작업에서 새로 알게 된 CSP 제약이 있다면, `csp/<provider>.md`에 추가할

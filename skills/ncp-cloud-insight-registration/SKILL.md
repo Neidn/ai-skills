@@ -38,13 +38,16 @@ NCP 리소스(Server / LB / DB)를 Cloud Insight 모니터링 대상으로 등�
 - Cloud Insight 서비스 사용 신청이 되어 있는지 (콘솔 Management & Governance ▸
   Cloud Insight 최초 진입 시 신청 필요)
 - 등록 작업을 수행할 계정에 Cloud Insight 권한이 있는지 (Sub Account라면 권한 범위 확인)
-- 대상 리소스가 VPC 환경인지 Classic 환경인지 — 두 환경은 모니터링 신청 경로가 다르다 ⚠
+
+이 스킬은 **VPC 환경만** 다룬다. Classic 환경 리소스는 범위 밖이다.
 
 ### 3. 리소스 유형별 등록
 
 `references/registration-steps.md`에서 대상 리소스 유형(Server / Load Balancer /
-Cloud DB) 절만 읽고 그대로 따른다. 절차 중 **⚠ 확인 필요** 표시가 있는 항목은
-콘솔에서 실제로 확인한 뒤 진행하고, 문서와 다르면 그 자리에서 사용자에게 알린다.
+Cloud DB) 절만 읽고 그대로 따른다. **Server만** 상세 모니터링 활성화가 필요하고,
+LB·Cloud DB 같은 관리형 서비스는 생성과 동시에 등록되므로 별도 신청 단계가 없다 —
+있는 것처럼 안내하지 않는다. 절차 중 **⚠ 확인 필요** 표시가 있는 항목은 콘솔에서
+실제로 확인한 뒤 진행하고, 문서와 다르면 그 자리에서 사용자에게 알린다.
 
 ### 4. 검수
 
