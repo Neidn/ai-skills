@@ -1,0 +1,13 @@
+# 렌더 산출물
+*.drawio.png
+*.drawio.pdf
+out/
+dist/
+
+# 에이전트가 로컬에 설치한 사본
+.claude/skills/
+.codex/skills/
+.cursor/skills/
+
+.DS_Store
+__pycache__/

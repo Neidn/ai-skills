@@ -1,0 +1,46 @@
+{
+  "title": "샘플 NCP 구성도",
+  "provider": "ncp",
+  "nodes": [
+    {"id": "internet", "label": "Internet", "kind": "external"},
+    {"id": "admin", "label": "운영자\n(VPN)", "kind": "client"}
+  ],
+  "groups": [
+    {
+      "id": "kr", "label": "NCP / KR Region", "kind": "region",
+      "children": [
+        {
+          "id": "vpc_prod", "label": "prod-vpc (10.0.0.0/16)", "kind": "vpc",
+          "children": [
+            {"id": "sbn_pub", "label": "public-sbn (10.0.1.0/24) · KR-1", "kind": "public",
+             "children": [
+               {"id": "lb01", "label": "Public LB\nweb-lb", "kind": "lb"},
+               {"id": "nat01", "label": "NAT Gateway", "kind": "gateway"}
+             ]},
+            {"id": "sbn_web", "label": "web-sbn (10.0.11.0/24) · KR-1", "kind": "private",
+             "children": [
+               {"id": "web01", "label": "web01\n2vCPU/8GB", "kind": "server"},
+               {"id": "web02", "label": "web02\n2vCPU/8GB", "kind": "server"}
+             ]},
+            {"id": "sbn_db", "label": "db-sbn (10.0.21.0/24) · KR-2", "kind": "private",
+             "children": [
+               {"id": "db01", "label": "Cloud DB for MySQL\n(Master)", "kind": "db"},
+               {"id": "db02", "label": "Standby", "kind": "db"}
+             ]}
+          ]
+        },
+        {"id": "obj", "label": "Object Storage\nbackup-bucket", "kind": "storage"}
+      ]
+    }
+  ],
+  "edges": [
+    {"from": "internet", "to": "lb01", "label": "443"},
+    {"from": "lb01", "to": "web01", "label": "8080"},
+    {"from": "lb01", "to": "web02", "label": "8080"},
+    {"from": "web01", "to": "db01", "label": "3306"},
+    {"from": "web02", "to": "db01", "label": "3306"},
+    {"from": "db01", "to": "db02", "label": "복제", "style": "dashed"},
+    {"from": "admin", "to": "web01", "style": "dashed"},
+    {"from": "db01", "to": "obj", "label": "백업", "style": "dashed"}
+  ]
+}
