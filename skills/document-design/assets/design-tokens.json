@@ -1,0 +1,46 @@
+{
+  "$comment": "문서 디자인 토큰. accent = 안랩클라우드메이트 시그니처 블루(#0067AC). 사내 브랜드 가이드의 정확한 값이 있으면 이 값만 교체.",
+  "typography": {
+    "fontFamily": {
+      "body": "Pretendard, 'Noto Sans KR', Inter, system-ui, sans-serif",
+      "mono": "'JetBrains Mono', D2Coding, Consolas, monospace"
+    },
+    "scale": {
+      "h1": { "size": 28, "weight": 700, "lineHeight": 1.2 },
+      "h2": { "size": 22, "weight": 700, "lineHeight": 1.25, "spaceBefore": 32 },
+      "h3": { "size": 17, "weight": 600, "lineHeight": 1.3, "spaceBefore": 24 },
+      "h4": { "size": 14, "weight": 600, "lineHeight": 1.4, "spaceBefore": 16 },
+      "body": { "size": 16, "weight": 400, "lineHeight": 1.6, "spaceBefore": 8 },
+      "caption": { "size": 13, "weight": 400, "lineHeight": 1.5 },
+      "code": { "size": 14, "weight": 400, "lineHeight": 1.5 }
+    }
+  },
+  "spacing": [4, 8, 12, 16, 24, 32, 48, 64],
+  "color": {
+    "light": {
+      "text": "#1A1A1A",
+      "textMuted": "#6B7280",
+      "border": "#E5E7EB",
+      "surface": "#F9FAFB",
+      "accent": "#0067AC",
+      "info": "#0EA5E9",
+      "warning": "#F59E0B",
+      "danger": "#DC2626",
+      "success": "#16A34A"
+    },
+    "dark": {
+      "text": "#E5E7EB",
+      "textMuted": "#9CA3AF",
+      "border": "#374151",
+      "surface": "#1F2937",
+      "accent": "#4DA3D9",
+      "info": "#38BDF8",
+      "warning": "#FBBF24",
+      "danger": "#F87171",
+      "success": "#4ADE80"
+    }
+  },
+  "callouts": ["참고:info", "주의:warning", "경고:danger", "완료:success"],
+  "radius": 4,
+  "page": { "unit": "mm", "marginTop": 20, "marginBottom": 20, "marginLeft": 25, "marginRight": 25 }
+}

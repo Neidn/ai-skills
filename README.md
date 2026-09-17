@@ -39,6 +39,9 @@ cd skills && zip -r ../cloud-architecture-diagram.zip cloud-architecture-diagram
 |---|---|
 | `cloud-architecture-diagram` | CSP 자산 목록을 인벤토리 JSON으로 정규화해 편집 가능한 draw.io 구성도와 Mermaid로 렌더 |
 | `ncp-cloud-insight-registration` | NCP Server/LB/DB를 Cloud Insight 모니터링 대상으로 등록하는 절차 안내 |
+| `document-design` | 문서의 시각 디자인(타이포·간격·색·표·콜아웃)을 디자인 토큰으로 통일. docx/HTML/MD/PPT 공통, HTML용 CSS·토큰 JSON 포함 |
+| `table-of-contents` | 제목에서 목차(TOC)를 자동 생성하고 번호 체계(1/1.1/1.1.1)와 앵커를 매김. docx 필드 TOC·HTML 앵커·MD 링크 지원 |
+| `document-structure` | 보고서·매뉴얼·제안서·장애 보고서·인수인계 등 유형별 표준 골격으로 문서 뼈대를 먼저 설계 |
 
 ## 구조
 

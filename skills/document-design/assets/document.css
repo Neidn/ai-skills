@@ -1,0 +1,96 @@
+/* document-design 기본 스타일시트.
+   브랜딩: 아래 --accent 한 줄만 교체한다. 나머지는 손대지 않는다. */
+
+:root {
+  --font-body: Pretendard, "Noto Sans KR", Inter, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", D2Coding, Consolas, monospace;
+
+  --text: #1A1A1A;
+  --text-muted: #6B7280;
+  --border: #E5E7EB;
+  --surface: #F9FAFB;
+  --accent: #0067AC;      /* 브랜드 슬롯 = 안랩클라우드메이트 시그니처 블루. 정확한 사내 값이 있으면 이 줄만 교체 */
+  --info: #0EA5E9;
+  --warning: #F59E0B;
+  --danger: #DC2626;
+  --success: #16A34A;
+
+  --radius: 4px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --text: #E5E7EB; --text-muted: #9CA3AF; --border: #374151;
+    --surface: #1F2937; --accent: #4DA3D9; --info: #38BDF8;
+    --warning: #FBBF24; --danger: #F87171; --success: #4ADE80;
+  }
+}
+:root[data-theme="dark"] {
+  --text: #E5E7EB; --text-muted: #9CA3AF; --border: #374151;
+  --surface: #1F2937; --accent: #4DA3D9; --info: #38BDF8;
+  --warning: #FBBF24; --danger: #F87171; --success: #4ADE80;
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--text);
+  line-height: 1.6;
+  font-size: 16px;
+  max-width: 820px;
+  margin: 0 auto;
+  padding: 32px 24px;
+  background: #fff;
+}
+:root[data-theme="dark"] body { background: #111827; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) body { background: #111827; }
+}
+
+h1 { font-size: 28px; font-weight: 700; line-height: 1.2; }
+h2 { font-size: 22px; font-weight: 700; line-height: 1.25; margin-top: 32px;
+     padding-bottom: 6px; border-bottom: 2px solid var(--border); }
+h3 { font-size: 17px; font-weight: 600; line-height: 1.3; margin-top: 24px; }
+h4 { font-size: 14px; font-weight: 600; line-height: 1.4; margin-top: 16px; }
+p  { margin: 8px 0; }
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+small, .caption { font-size: 13px; color: var(--text-muted); }
+
+/* 표 — 헤더 행만 강조, 가로선 위주 */
+table { border-collapse: collapse; width: 100%; margin: 16px 0; font-size: 15px; }
+th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--border); }
+th { background: var(--surface); font-weight: 600; }
+td.num, th.num { text-align: right; }
+tbody tr:nth-child(even) { background: color-mix(in srgb, var(--surface) 50%, transparent); }
+
+/* 코드 */
+code { font-family: var(--font-mono); font-size: 0.9em;
+       background: var(--surface); padding: 1px 5px; border-radius: var(--radius); }
+pre { background: var(--surface); padding: 16px; border-radius: var(--radius);
+      overflow-x: auto; margin: 16px 0; }
+pre code { background: none; padding: 0; }
+
+/* 콜아웃 — .callout.참고|.주의|.경고|.완료 */
+.callout { border-left: 4px solid var(--border); background: var(--surface);
+           padding: 12px 16px; margin: 16px 0; border-radius: 0 var(--radius) var(--radius) 0; }
+.callout .label { font-weight: 700; display: block; margin-bottom: 4px; }
+.callout.info    { border-left-color: var(--info); }
+.callout.warning { border-left-color: var(--warning); }
+.callout.danger  { border-left-color: var(--danger); }
+.callout.success { border-left-color: var(--success); }
+.callout.info .label    { color: var(--info); }
+.callout.warning .label { color: var(--warning); }
+.callout.danger .label  { color: var(--danger); }
+.callout.success .label { color: var(--success); }
+
+/* 인쇄 */
+@media print {
+  body { max-width: none; padding: 0; }
+  @page { margin: 20mm 25mm; }
+  h2, h3, h4 { break-after: avoid; }
+  table, pre, .callout, figure { break-inside: avoid; }
+  a { color: var(--text); text-decoration: underline; }
+  a[href^="http"]::after { content: " (" attr(href) ")"; font-size: 0.8em; color: var(--text-muted); }
+}
