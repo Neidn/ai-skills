@@ -42,6 +42,7 @@ cd skills && zip -r ../cloud-architecture-diagram.zip cloud-architecture-diagram
 | `document-design` | 문서의 시각 디자인(타이포·간격·색·표·콜아웃)을 디자인 토큰으로 통일. docx/HTML/MD/PPT 공통, HTML용 CSS·토큰 JSON 포함 |
 | `table-of-contents` | 제목에서 목차(TOC)를 자동 생성하고 번호 체계(1/1.1/1.1.1)와 앵커를 매김. docx 필드 TOC·HTML 앵커·MD 링크 지원 |
 | `document-structure` | 보고서·매뉴얼·제안서·장애 보고서·인수인계 등 유형별 표준 골격으로 문서 뼈대를 먼저 설계 |
+| `career-management` | 경력 vault(프로젝트·사실 교정·기술·지원 이력)를 누적 관리하고, vault만 근거로 이력서·경력기술서·포트폴리오·자소서를 생성 |
 
 ## 구조
 
@@ -75,4 +76,20 @@ cd ai-skills
 ln -s AGENTS.md CLAUDE.md
 ln -s AGENTS.md GEMINI.md
 npx skills add . -y
+```
+
+## career-management 개인 데이터
+
+`career-management`는 스킬(절차)과 개인 경력 데이터(vault)를 분리한다. 스킬은 이 레포에,
+vault는 **비공개**로 둔다. 스킬은 다음 순서로 vault를 찾는다.
+
+1. 환경변수 `CAREER_VAULT` (예: 비공개 레포 `~/career-vault`)
+2. 스킬 폴더의 `data/` — `.gitignore`로 커밋 제외. claude.ai 업로드 zip에만 포함한다
+3. 작업 디렉터리의 `career/` 또는 `career-vault/`
+
+```bash
+# 빈 vault 만들기
+python skills/career-management/scripts/init_vault.py ~/career-vault
+# 점검
+python skills/career-management/scripts/check_vault.py ~/career-vault
 ```

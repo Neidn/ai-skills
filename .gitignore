@@ -11,3 +11,6 @@ dist/
 
 .DS_Store
 __pycache__/
+
+# 개인 경력 데이터 — 공개 레포에 커밋 금지
+skills/career-management/data/
