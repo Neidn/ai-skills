@@ -140,7 +140,37 @@ GROUP BY wk ORDER BY wk;
 거래 없는 날 비중이 높으면 **엣지 문제가 아니라 처리량(throughput) 문제**다. 승률을
 고치려 들기 전에 신호가 왜 안 나오는지 본다.
 
-## 7. shadow book — 게이트 비용
+## 7. 구간 레짐 확인 — 판정 전에 먼저 돌린다
+
+측면별·레짐별 비교를 하기 전에 **그 구간이 방향성 구간이었는지** 본다. 캔들 테이블의
+시간 컬럼은 epoch ms `BIGINT`인 경우가 많으므로 파라미터를 ms로 만들어 넘긴다.
+
+```python
+from datetime import datetime, timezone
+start_ms = int(datetime(2026, 1, 1, tzinfo=timezone.utc).timestamp() * 1000)
+
+cur.execute("""
+  SELECT symbol, COUNT(*) AS bars,
+         (ARRAY_AGG(close ORDER BY open_time ASC))[1]  AS first_px,
+         (ARRAY_AGG(close ORDER BY open_time DESC))[1] AS last_px,
+         MAX(high) AS hi, MIN(low) AS lo
+  FROM klines
+  WHERE interval_type = '1h' AND open_time >= %s
+    AND symbol IN ('BTCUSDT', 'SOLUSDT')
+  GROUP BY symbol ORDER BY symbol
+""", (start_ms,))
+
+for r in cur.fetchall():
+    d = dict(r)
+    f, l = float(d["first_px"]), float(d["last_px"])
+    print(f"{d['symbol']:<9} {(l/f-1)*100:+6.2f}%  "
+          f"range {(float(d['hi'])/float(d['lo'])-1)*100:.1f}%  bars={d['bars']}")
+```
+
+기준 자산이 구간에서 크게 한 방향으로 움직였으면 **측면별 비교는 무효다.** 유리했던
+쪽의 성적도 같이 버린다.
+
+## 8. shadow book — 게이트 비용
 
 `block_reason`별로 나누면 각 게이트가 돈을 아꼈는지 버렸는지 보인다. USDT가 아니라
 **R 배수**로 집계한다 — 사이징이 시점마다 달라서 절대금액은 비교 불가다.
