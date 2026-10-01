@@ -46,6 +46,7 @@ cd skills && zip -r ../cloud-architecture-diagram.zip cloud-architecture-diagram
 | `trading-book-audit` | 자동매매 성과를 거래소 원장 기준으로 측정. 손익 회계 버그 카탈로그, 매매당 정규화 판정 규칙, 표본 기준, 증액 게이트 |
 | `llm-loop-economics` | LLM을 반복 루프에 넣기 전 호출량×단가로 운영비를 먼저 계산하고 비용·결정론·평가가능성으로 판정. 폴링→이벤트 전환 사다리 |
 | `kubernetes-operations` | kubectl로 클러스터를 직접 운영. 조회는 즉시 실행, 생성·삭제·설정변경·스케일링·exec·Secret 값 조회는 실행 전 승인 필요 |
+| `msp-responsibility-boundary` | 인프라·개발사·제조사가 얽힌 장애에서 원인 계층별 책임을 판정하고, 정보 공개 단계와 대외 회신 구조로 범위 밖 요청을 위임 |
 
 ## 구조
 
