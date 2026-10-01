@@ -1,0 +1,46 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(kubectl get *)",
+      "Bash(kubectl describe *)",
+      "Bash(kubectl logs *)",
+      "Bash(kubectl top *)",
+      "Bash(kubectl explain *)",
+      "Bash(kubectl api-resources *)",
+      "Bash(kubectl api-versions *)",
+      "Bash(kubectl version *)",
+      "Bash(kubectl cluster-info *)",
+      "Bash(kubectl events *)",
+      "Bash(kubectl diff *)",
+      "Bash(kubectl auth can-i *)",
+      "Bash(kubectl rollout status *)",
+      "Bash(kubectl rollout history *)"
+    ],
+    "ask": [
+      "Bash(kubectl apply *)",
+      "Bash(kubectl create *)",
+      "Bash(kubectl delete *)",
+      "Bash(kubectl patch *)",
+      "Bash(kubectl edit *)",
+      "Bash(kubectl replace *)",
+      "Bash(kubectl scale *)",
+      "Bash(kubectl autoscale *)",
+      "Bash(kubectl set *)",
+      "Bash(kubectl label *)",
+      "Bash(kubectl annotate *)",
+      "Bash(kubectl cordon *)",
+      "Bash(kubectl uncordon *)",
+      "Bash(kubectl drain *)",
+      "Bash(kubectl taint *)",
+      "Bash(kubectl exec *)",
+      "Bash(kubectl cp *)",
+      "Bash(kubectl rollout restart *)",
+      "Bash(kubectl rollout undo *)",
+      "Bash(kubectl rollout pause *)",
+      "Bash(kubectl rollout resume *)",
+      "Bash(kubectl auth reconcile *)",
+      "Bash(kubectl get secret *)",
+      "Bash(kubectl get secrets *)"
+    ]
+  }
+}

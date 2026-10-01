@@ -45,6 +45,7 @@ cd skills && zip -r ../cloud-architecture-diagram.zip cloud-architecture-diagram
 | `career-management` | 경력 vault(프로젝트·사실 교정·기술·지원 이력)를 누적 관리하고, vault만 근거로 이력서·경력기술서·포트폴리오·자소서를 생성 |
 | `trading-book-audit` | 자동매매 성과를 거래소 원장 기준으로 측정. 손익 회계 버그 카탈로그, 매매당 정규화 판정 규칙, 표본 기준, 증액 게이트 |
 | `llm-loop-economics` | LLM을 반복 루프에 넣기 전 호출량×단가로 운영비를 먼저 계산하고 비용·결정론·평가가능성으로 판정. 폴링→이벤트 전환 사다리 |
+| `kubernetes-operations` | kubectl로 클러스터를 직접 운영. 조회는 즉시 실행, 생성·삭제·설정변경·스케일링·exec·Secret 값 조회는 실행 전 승인 필요 |
 
 ## 구조
 
