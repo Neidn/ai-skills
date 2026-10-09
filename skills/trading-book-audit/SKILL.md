@@ -9,6 +9,7 @@ description: >
   같은 요청에 반드시 사용한다. "감사"나 "audit"라는 단어가 없어도 실거래 성과를 숫자로
   판단하려는 맥락이면 적용한다. 거래소 API·DB·백테스트 숫자가 서로 다를 때, 또는 손익
   컬럼을 읽는 코드(사이징·리스크 가드·리포트)를 손보기 전에도 먼저 읽는다.
+  코인·선물 book 전용이다. 국내주식 book은 stock-trading-book-audit를 쓴다.
 metadata:
   author: neidn
   version: "1.0"
