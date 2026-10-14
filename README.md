@@ -46,6 +46,7 @@ cd skills && zip -r ../cloud-architecture-diagram.zip cloud-architecture-diagram
 | `trading-book-audit` | 자동매매 성과를 거래소 원장 기준으로 측정. 손익 회계 버그 카탈로그, 매매당 정규화 판정 규칙, 표본 기준, 증액 게이트 |
 | `stock-trading-book-audit` | 국내주식 자동매매 성과를 증권사 체결내역 기준으로 측정. 거래세·수수료·기업행위(분할·배당락) 회계 버그, 벤치마크 차감, 표본·레짐 기준, 증액 게이트 |
 | `stock-trading-execution` | 국내주식(KRX·NXT) 봇의 주문 상태 머신, 장 운영·가격제한·VI·호가단위, 결제·미수 차단, 증권사 API 운영, 잔고 대조·킬 스위치. 실계좌 주문은 승인 필요 |
+| `trade-history-analysis` | 체결 내역(내 것·공개된 남의 것)에서 트레이드를 재구성해 노출·분할·물타기·보유시간·maker 비중을 측정하고, 시스템으로 옮길 구조와 못 옮길 판단을 구분. 한투 API·BitMEX·Binance 입력 지원 |
 | `llm-loop-economics` | LLM을 반복 루프에 넣기 전 호출량×단가로 운영비를 먼저 계산하고 비용·결정론·평가가능성으로 판정. 폴링→이벤트 전환 사다리 |
 | `kubernetes-operations` | kubectl로 클러스터를 직접 운영. 조회는 즉시 실행, 생성·삭제·설정변경·스케일링·exec·Secret 값 조회는 실행 전 승인 필요 |
 | `msp-responsibility-boundary` | 인프라·개발사·제조사가 얽힌 장애에서 원인 계층별 책임을 판정하고, 정보 공개 단계와 대외 회신 구조로 범위 밖 요청을 위임 |
