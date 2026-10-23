@@ -48,7 +48,7 @@ cd skills && zip -r ../cloud-architecture-diagram.zip cloud-architecture-diagram
 | `stock-trading-execution` | 국내주식(KRX·NXT) 봇의 주문 상태 머신, 장 운영·가격제한·VI·호가단위, 결제·미수 차단, 증권사 API 운영, 잔고 대조·킬 스위치, 체결 분석에서 옮긴 구조 규칙(종목당 상한·지정가 진입·추가매수 금지), 한투 모의투자 가이드. 실계좌 주문은 승인 필요 |
 | `trade-history-analysis` | 체결 내역(내 것·공개된 남의 것)에서 트레이드를 재구성해 노출·분할·물타기·보유시간·maker 비중을 측정하고, 시스템으로 옮길 구조와 못 옮길 판단을 구분. 한투 API·BitMEX·Binance 입력 지원 |
 | `llm-loop-economics` | LLM을 반복 루프에 넣기 전 호출량×단가로 운영비를 먼저 계산하고 비용·결정론·평가가능성으로 판정. 폴링→이벤트 전환 사다리 |
-| `kubernetes-operations` | kubectl로 클러스터를 직접 운영. 조회는 즉시 실행, 생성·삭제·설정변경·스케일링·exec·Secret 값 조회는 실행 전 승인 필요 |
+| `kubernetes-operations` | kubectl로 클러스터를 운영하고 장애 원인을 조사. 조회는 즉시, 변경은 조치계획 승인 범위 안에서만, Namespace·PVC 삭제·RBAC·업그레이드는 승인해도 안 함. 고객사·플랫폼별 값은 환경 프로필(`K8S_OPS_PROFILE`)로 분리 |
 | `msp-responsibility-boundary` | 인프라·개발사·제조사가 얽힌 장애에서 원인 계층별 책임을 판정하고, 정보 공개 단계와 대외 회신 구조로 범위 밖 요청을 위임 |
 
 ## 구조

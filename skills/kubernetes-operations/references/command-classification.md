@@ -26,7 +26,7 @@
 | 명령 | 비고 |
 |---|---|
 | `apply`, `create`, `replace` | 리소스 생성/치환 |
-| `delete` | 단일 리소스든 라벨 셀렉터 기반이든 동일. 셀렉터 기반이면 영향받는 리소스 목록을 먼저 `get`으로 보여준다 |
+| `delete` | 이름을 명시한 단일 리소스만. Namespace·PVC·PV·CRD 등과 셀렉터·`--all`·디렉터리 단위 삭제는 아래 "승인해도 실행 안 함" |
 | `patch`, `edit`, `set` | 기존 리소스 필드 변경. `edit`은 대화형이라 이 스킬(비대화형 실행) 환경에서는 대신 `patch`나 `apply`로 동일 변경을 수행하고 승인받는 편이 낫다 |
 | `scale`, `autoscale` | replica 수 변경 |
 | `label`, `annotate` | 조회 모드가 없다 — 인자 없이 실행해도 항상 쓰기 동작이므로 명령 자체를 승인 필요로 취급 |
@@ -35,7 +35,6 @@
 | `rollout restart`, `rollout undo`, `rollout pause`, `rollout resume` | `rollout`의 상태 변경 서브커맨드만. `status`/`history`는 조회 |
 | `exec` | 컨테이너 내부에서 명령 실행. 읽기 전용처럼 보이는 명령(`exec -- cat file`)이어도 컨테이너 프로세스에 개입하는 행위라 일괄 승인 필요로 취급 |
 | `cp` | 파일을 컨테이너 안팎으로 복사. 컨테이너 파일시스템을 바꿀 수 있음 |
-| `auth reconcile` | RBAC 규칙을 실제로 생성/갱신함 (`auth can-i`와 혼동 주의) |
 
 ## 승인 필요 — 민감정보 노출
 
@@ -57,6 +56,25 @@
 | `kubectl exec ... -- kill` 등으로 프로세스 강제 종료 | `exec` 자체가 이미 승인 필요지만, 강제 종료 목적이면 승인 요청에 그 의도를 명시 |
 | Eviction API를 통한 축출 (`kubectl drain`이 내부적으로 사용) | `drain` 항목과 동일하게 취급 |
 
+## 승인해도 실행 안 함
+
+되돌릴 수 없거나 영향 범위를 통제할 수 없는 작업. 승인을 받아도 실행하지 않고,
+거절 사유와 함께 사용자가 직접 하도록 안내한다. 조치계획에도 넣지 않는다.
+
+| 명령 | 비고 |
+|---|---|
+| `delete namespace`/`ns` | 안의 모든 리소스와 데이터가 함께 지워진다 |
+| `delete pvc`, `delete pv` | reclaimPolicy가 Delete면 실제 볼륨 데이터까지 사라진다 |
+| `delete crd` | 해당 종류의 커스텀 리소스가 전부 지워진다 |
+| `delete storageclass`, `delete node` | 클러스터 범위 리소스 |
+| `delete -l <셀렉터>`, `delete --all`, `delete -f <디렉터리>` | 몇 개가 지워질지 실행 시점에 바뀔 수 있다 |
+| Role·ClusterRole·RoleBinding·ClusterRoleBinding 대상 `apply`/`create`/`patch`/`edit`/`replace`/`delete` | 권한 변경 |
+| `auth reconcile` | RBAC 규칙을 실제로 생성/갱신함 (`auth can-i`와 혼동 주의) |
+| 클러스터·노드·클러스터 구성요소(CNI·CSI·Ingress 컨트롤러 등) 버전 변경 | 보통 플랫폼 CLI·콘솔 작업이지만, kubectl·Helm으로 하는 경우도 같다 |
+| `exec`로 디렉터리·와일드카드 통삭제(`rm -rf <dir>`, `rm *.log`) | 파일 삭제는 절대경로로 명시한 파일 1개당 명령 1개만 승인 대상 |
+
+프로필 `approval.extra_forbidden`에 적힌 작업도 이 등급으로 취급한다.
+
 ## 애매한 케이스
 
 - **`apply/create --dry-run=client`** — 클라이언트에서만 검증, 서버에 아무 요청도
@@ -71,6 +89,10 @@
 - **`kubectl run`** — 사실상 `create`와 동일 (Pod 생성). 승인 필요
 - **`kubectl proxy`** — API 서버로의 로컬 프록시를 연다. `port-forward`와 같은
   기준으로 판단
-- **레이블 셀렉터 기반 대량 작업** (`delete -l app=foo`, `label -l ...`) — 몇 개
+- **레이블 셀렉터 기반 대량 작업** (`label -l ...`, `annotate -l ...`) — 몇 개
   리소스에 영향을 주는지 미리 `get -l app=foo`로 확인해서 승인 요청에 개수와
-  목록을 포함한다. "몇 개인지 모른 채" 승인받지 않는다
+  목록을 포함한다. "몇 개인지 모른 채" 승인받지 않는다. 셀렉터 기반 `delete`는
+  "승인해도 실행 안 함"이다
+- **`exec`로 파일 삭제** — 절대경로로 명시한 파일 1개당 삭제 명령 1개만 승인 대상이다.
+  삭제 전 `ls -la <정확한 경로>`로 존재를 확인하고, 계획의 경로와 실제 명령의 경로가
+  같은지 대조한다
