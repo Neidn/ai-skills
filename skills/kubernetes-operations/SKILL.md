@@ -38,6 +38,9 @@ kubectl로 클러스터를 직접 운영하되, **조회는 자동 실행, 상�
    일치하는지 확인한다. 네임스페이스도 `-n <namespace>`를 명시한다. **컨텍스트를
    잘못 짚고 실행하는 것이 이 작업에서 가장 흔하고 위험한 실수다** — 특히 여러
    클러스터(dev/staging/prod)를 다루는 환경에서는 매 요청마다 확인한다.
+   실행 환경이 `kubectl config`를 막아 둔 경우(클러스터 1개 = 실행 환경 1개 구성
+   등)에는 `kubectl cluster-info`의 API 서버 주소와 `kubectl get nodes` 결과를
+   프로필과 대조해 확인한다.
 4. **실행 경로의 제약을 확인한다.** 프로필 `executor.constraints`가 있으면(예: 중간
    실행 계층이 파이프·리다이렉트를 막음) 명령을 그 제약에 맞게 나눠 보내고, 정렬·
    필터 같은 가공은 결과를 받은 뒤에 한다.
@@ -55,6 +58,10 @@ kubectl로 클러스터를 직접 운영하되, **조회는 자동 실행, 상�
 | **승인 필요 (민감정보)** | 실행 전 확인 | `get secret -o yaml\|json` 등 Secret 값이 디코딩되어 노출되는 조회 |
 | **승인 필요 (파괴적)** | 실행 전 확인, 근거 요구 | `delete --force`, `--grace-period=0`, `evict` |
 | **승인해도 실행 안 함** | 사용자가 직접 하도록 안내 | Namespace·PVC·PV·CRD·StorageClass 삭제, 셀렉터·`--all`·디렉터리 단위 일괄 삭제, RBAC 변경, 클러스터·노드·애드온 버전 변경 (아래 3번) |
+
+Helm도 같은 기준이다. `list`·`status`·`history`는 조회, `get values`·`get manifest`는
+민감정보, `upgrade`·`install`·`rollback`은 승인 필요, `uninstall`과 클러스터 구성요소
+릴리스의 `upgrade`는 승인해도 실행 안 함. 상세는 분류표의 "Helm" 절에 있다.
 
 애매한 명령(`kubectl apply --dry-run=client/server`, `port-forward` 등)은
 `references/command-classification.md`의 "애매한 케이스"를 본다.
@@ -86,6 +93,7 @@ kubectl로 클러스터를 직접 운영하되, **조회는 자동 실행, 상�
 | `k8s_patch` | 이름을 명시한 리소스 1개의 명시한 필드만 변경 |
 | `k8s_apply` | 매니페스트 적용. diff 결과를 계획에 첨부 |
 | `pvc_expand` | 이름을 명시한 PVC 1개 용량 확장. StorageClass의 `allowVolumeExpansion` 확인 필수, 축소는 불가 |
+| `helm_upgrade` / `helm_rollback` | 이름을 명시한 애플리케이션 릴리스 1개의 업그레이드·되돌리기. 차트 버전과 바뀌는 values를 계획에 적는다 |
 | `custom` | 위에 없는 조치. 명령 전체를 계획에 적는다 |
 | `none` | 조치 없이 기록만 |
 
@@ -188,5 +196,6 @@ kubectl로 클러스터를 직접 운영하되, **조회는 자동 실행, 상�
   실행 안 함 상세 분류, 애매한 케이스(`--dry-run`, `port-forward`, `cp` 등) 설명
 - `references/environment-profile.md` — 환경 프로필 양식, 찾는 순서, 없을 때의
   기본값, 값 찾는 방법. 새 고객사·클러스터에 적용할 때 읽는다
+- `assets/k8s-ops-profile.example.yaml` — 복사해서 채우는 프로필 예시 파일
 - `references/incident-investigation.md` — 증상별 조사 순서, 변경 이력 대조, 사후
   분석, 결과 보고 양식. 장애 조사 때 읽는다

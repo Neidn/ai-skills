@@ -75,6 +75,24 @@
 
 프로필 `approval.extra_forbidden`에 적힌 작업도 이 등급으로 취급한다.
 
+## Helm
+
+Helm은 릴리스 정보를 대상 네임스페이스의 Secret(`helm.sh/release.v1` 타입)에
+저장한다. 그래서 `helm list`·`status`·`history` 같은 조회도 Secret 읽기 권한이
+필요하다. Secret 권한이 없는 읽기 전용 계정에서는 실패하므로, 그때는
+`kubectl get <종류> -l app.kubernetes.io/managed-by=Helm`으로 대신 본다.
+`--kube-context`, `-n` 같은 전역 플래그는 kubectl과 마찬가지로 동사 뒤에 붙인다.
+
+| 분류 | 명령 | 비고 |
+|---|---|---|
+| 조회 | `list`/`ls`, `status`, `history`, `get notes`, `get metadata`, `show`, `template`, `lint`, `search`, `repo list`, `version` | `template`·`lint`는 로컬 렌더링 |
+| 승인 필요 (민감정보) | `get values`, `get manifest`, `get all`, `get hooks` | values에 비밀번호가 들어 있거나 매니페스트에 Secret이 포함될 수 있다. 꼭 필요한 키만, 마스킹해서 보여 준다 |
+| 승인 필요 | `upgrade`, `install`, `upgrade --install`, `rollback`, `test` | `test`는 테스트 파드를 만든다. 미리보기는 `upgrade --dry-run=server`나 diff 플러그인 결과를 붙인다 |
+| 승인 필요 (파괴적) | `upgrade --force` | 리소스를 지우고 다시 만들 수 있다. 일반 `upgrade`와 구분해 이유를 승인 요청에 적는다 |
+| 승인 필요 (로컬 환경) | `repo add`/`update`/`remove`, `plugin install`/`update` | 클러스터는 안 바꾸지만 외부 저장소에 접근하거나 외부 코드를 설치한다 |
+| 승인해도 실행 안 함 | `uninstall`/`delete`/`del`/`un` | 릴리스의 리소스가 함께 지워진다. PVC는 남는 경우가 많지만 차트에 따라 다르다 |
+| 승인해도 실행 안 함 | 클러스터 구성요소 릴리스(CNI·CSI·Ingress 컨트롤러·cert-manager 등)의 `upgrade` | 위 "버전 변경"과 같다. 애플리케이션 릴리스의 `upgrade`는 승인 필요 |
+
 ## 애매한 케이스
 
 - **`apply/create --dry-run=client`** — 클라이언트에서만 검증, 서버에 아무 요청도

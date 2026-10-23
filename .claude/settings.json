@@ -14,7 +14,19 @@
       "Bash(kubectl diff *)",
       "Bash(kubectl auth can-i *)",
       "Bash(kubectl rollout status *)",
-      "Bash(kubectl rollout history *)"
+      "Bash(kubectl rollout history *)",
+      "Bash(helm list *)",
+      "Bash(helm ls *)",
+      "Bash(helm status *)",
+      "Bash(helm history *)",
+      "Bash(helm get notes *)",
+      "Bash(helm get metadata *)",
+      "Bash(helm show *)",
+      "Bash(helm template *)",
+      "Bash(helm lint *)",
+      "Bash(helm search *)",
+      "Bash(helm repo list *)",
+      "Bash(helm version *)"
     ],
     "ask": [
       "Bash(kubectl apply *)",
@@ -39,7 +51,19 @@
       "Bash(kubectl rollout pause *)",
       "Bash(kubectl rollout resume *)",
       "Bash(kubectl get secret *)",
-      "Bash(kubectl get secrets *)"
+      "Bash(kubectl get secrets *)",
+      "Bash(helm get values *)",
+      "Bash(helm get manifest *)",
+      "Bash(helm get all *)",
+      "Bash(helm get hooks *)",
+      "Bash(helm upgrade *)",
+      "Bash(helm install *)",
+      "Bash(helm rollback *)",
+      "Bash(helm test *)",
+      "Bash(helm repo add *)",
+      "Bash(helm repo update *)",
+      "Bash(helm repo remove *)",
+      "Bash(helm plugin *)"
     ],
     "deny": [
       "Bash(kubectl *delete namespace*)",
@@ -71,7 +95,11 @@
       "Bash(kubectl *exec *rm -r*)",
       "Bash(kubectl *exec *rm -R*)",
       "Bash(kubectl *exec *rm -fr*)",
-      "Bash(kubectl *exec *rm -fR*)"
+      "Bash(kubectl *exec *rm -fR*)",
+      "Bash(helm *uninstall *)",
+      "Bash(helm delete *)",
+      "Bash(helm del *)",
+      "Bash(helm un *)"
     ]
   }
 }

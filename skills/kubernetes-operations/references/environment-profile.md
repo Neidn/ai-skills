@@ -35,62 +35,19 @@
 
 ## 양식
 
-```yaml
-profile:
-  name: ""                  # [필수] 고객사·환경 식별자. 보고서 머리에 쓴다
+`assets/k8s-ops-profile.example.yaml`을 복사해서 쓴다. 각 키의 의미와 [필수]·[권장]
+표시는 파일 안 주석에 있다. 주요 묶음은 다음과 같다.
 
-clusters:                   # [필수] 다루는 클러스터 전부
-  - name: ""                # 사람이 부르는 이름
-    context: ""             # [필수] kubeconfig 컨텍스트 이름
-    env: ""                 # [필수] prod | stg | dev. 비어 있으면 prod로 간주
-    platform: ""            # 참고용. 예: eks, aks, gke, nks, on-prem, k3s
-    kubeconfig:
-      path_env: ""          # kubeconfig 경로를 담은 환경변수 이름
-      issue_command: ""     # 임시 kubeconfig 발급 명령(플랫폼 CLI). 비밀값은 넣지 않는다
-      temporary: true       # true면 작업 디렉터리에 발급하고 작업 후 지운다
-    namespaces_in_scope: [] # 운영 범위 네임스페이스. 비어 있으면 매번 확인
-    readonly: false         # true면 조회만 하고 변경 계획도 세우지 않는다
-
-approval:
-  approver: ""              # 변경 승인 권한자. 비어 있으면 대화 중인 사용자
-  channel: "chat"           # 승인으로 인정하는 경로. 기본 chat(이 대화의 명시적 승인)
-                            # 외부 승인 시스템을 쓰면 그 이름과 확인 방법을 적는다
-  token:
-    required: false         # true면 토큰 일치·1회용·만료 전을 모두 확인
-    ttl_hours: 2
-  extra_forbidden: []       # 기본 금지 목록에 더해 이 고객사가 막는 작업
-
-secrets_env: {}             # 필요한 비밀정보의 환경변수 이름만. 예: registry_token: REG_TOKEN
-
-executor:
-  type: "direct"            # direct: kubectl 직접 실행 | gateway: 중간 실행 계층 경유
-  constraints: []           # 실행 경로의 제약. 예: "요청 1건에 명령 1개", "파이프·리다이렉트 금지"
-
-platform_hooks:             # 클러스터 밖 정보를 얻는 방법. 도구 이름이 아니라 "무엇으로 어떻게"를 적는다
-  lb_health: ""             # 외부 LB 타깃 헬스 조회 방법
-  audit_log: ""             # 클라우드 감사 로그(노드풀·LB·보안그룹 변경 이력) 조회 방법
-  metrics: ""               # 노드·파드 메트릭 이력 조회 방법
-  logs: ""                  # 중앙 로그 저장소 조회 방법(파드가 사라진 뒤 로그)
-  node_access: ""           # 노드 내부 조회·콘솔 수단. 노드 재기동은 안내만 한다
-  alert_mapping: ""         # 알람의 대상 식별자 → 쿠버네티스 리소스 매핑 규칙
-  notify: ""                # 보고·승인 요청을 보내는 경로
-
-services:                   # [권장] 조사 경로와 재검증 범위를 정한다
-  - name: ""
-    entry: ""               # 도메인 또는 진입점
-    flow: ""                # 예: 외부 LB → Ingress(nginx) → Service → Deployment
-    namespace: ""
-    workloads: []           # 예: deployment/api, statefulset/redis
-    required_components: [] # 재검증 때 모두 Ready인지 확인할 것. 사이드카·CronJob 포함
-    dependencies: []        # DB, 메시지 큐, 외부 API 등 클러스터 밖 의존성
-    schedules: []           # 장애 시각과 대조할 배치·백업. 예: "백업 매일 02:00"
-    scope_note: ""          # 인프라 / 애플리케이션 책임 경계 메모
-
-known_limits: []            # 조회 불가 대상, 권한 부족 등 알려진 제약
-
-# 변경 이력
-# YYYY-MM-DD 변경자: 내용
-```
+| 묶음 | 담는 것 |
+|---|---|
+| `profile` | 고객사·환경 식별자 |
+| `clusters` | 컨텍스트, prod/stg/dev, kubeconfig 경로·발급 방법, 운영 범위 네임스페이스, 읽기 전용 여부 |
+| `approval` | 승인자, 승인 경로, 토큰 규칙, 고객사별 추가 금지 작업 |
+| `secrets_env` | 비밀정보의 환경변수 이름 |
+| `executor` | 실행 경로와 그 제약(중간 실행 계층 등) |
+| `platform_hooks` | LB 헬스, 감사 로그, 메트릭, 중앙 로그, 노드 접근, 알람 매핑, 알림 경로를 얻는 방법 |
+| `services` | 서비스별 진입 경로, 워크로드, 재검증 대상, 의존성, 배치 일정, 책임 경계 |
+| `known_limits` | 조회 불가 대상, 권한 부족 등 알려진 제약 |
 
 ## 작업별 필요 항목
 
