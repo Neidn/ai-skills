@@ -35,12 +35,16 @@
 | `rollout restart`, `rollout undo`, `rollout pause`, `rollout resume` | `rollout`의 상태 변경 서브커맨드만. `status`/`history`는 조회 |
 | `exec` | 컨테이너 내부에서 명령 실행. 읽기 전용처럼 보이는 명령(`exec -- cat file`)이어도 컨테이너 프로세스에 개입하는 행위라 일괄 승인 필요로 취급 |
 | `cp` | 파일을 컨테이너 안팎으로 복사. 컨테이너 파일시스템을 바꿀 수 있음 |
+| `run`, `debug`, `attach` | 파드·임시 컨테이너를 만들거나 실행 중인 프로세스에 붙는다. `debug node/<이름>`은 노드 호스트에 접근하는 파드를 만든다 |
+| `config use-context`, `config set*`, `config unset`, `config delete-*`, `config rename-context` | 클러스터는 안 바꾸지만 이후 명령이 향하는 대상이 바뀐다. 컨텍스트를 바꿔야 하면 바꾸지 말고 명령마다 `--context`를 동사 뒤에 붙인다 |
 
 ## 승인 필요 — 민감정보 노출
 
 | 명령 | 비고 |
 |---|---|
 | `get secret`, `get secrets` (모든 출력 형식) | 테이블 출력은 값을 안 보여주지만, 어떤 Secret이 존재하는지 자체도 민감할 수 있어 통째로 승인 필요로 묶는다. `-o yaml`/`-o json`/`-o jsonpath=...`처럼 `data` 필드가 base64로 노출되는 형식은 특히 주의 — base64는 암호화가 아니라 인코딩이라 즉시 디코딩 가능하다는 점을 승인 요청 시 같이 안내한다 |
+| Secret이 섞인 모든 `get` | `get secret/<이름>`, `get -n a secret`, `get sa,secret`, `get all,secret`, `get Secret`처럼 리소스 위치·표기가 달라도 같다. `get --raw`도 경로로 무엇이든 읽을 수 있으므로 승인 필요 |
+| `config view --raw` | kubeconfig의 토큰·인증서가 그대로 나온다. `--raw` 없는 `config view`는 값이 가려진다 |
 | `describe secret` | 값 자체는 마스킹되어 나오므로 조회로 취급해도 되지만, 어떤 키가 존재하는지는 노출된다. 팀 정책에 따라 승인 필요로 올릴 수도 있음 — 애매하면 사용자에게 물어본다 |
 
 ## 승인 필요 — 파괴적 옵션
@@ -70,6 +74,8 @@
 | `delete -l <셀렉터>`, `delete --all`, `delete -f <디렉터리>` | 몇 개가 지워질지 실행 시점에 바뀔 수 있다 |
 | Role·ClusterRole·RoleBinding·ClusterRoleBinding 대상 `apply`/`create`/`patch`/`edit`/`replace`/`delete` | 권한 변경 |
 | `auth reconcile` | RBAC 규칙을 실제로 생성/갱신함 (`auth can-i`와 혼동 주의) |
+| `create token` | ServiceAccount 토큰을 새로 발급한다. 자격증명 발급이라 권한 변경과 같다 |
+| `certificate approve`/`deny` | CSR을 승인하면 그 인증서로 클러스터에 접근할 수 있게 된다 |
 | 클러스터·노드·클러스터 구성요소(CNI·CSI·Ingress 컨트롤러 등) 버전 변경 | 보통 플랫폼 CLI·콘솔 작업이지만, kubectl·Helm으로 하는 경우도 같다 |
 | `exec`로 디렉터리·와일드카드 통삭제(`rm -rf <dir>`, `rm *.log`) | 파일 삭제는 절대경로로 명시한 파일 1개당 명령 1개만 승인 대상 |
 

@@ -47,11 +47,12 @@
 | 서비스 5xx·타임아웃 | 외부 LB 헬스(`lb_health`) → Ingress 컨트롤러 로그(상태 코드, upstream) → Service 셀렉터와 Endpoints가 비었는지 → 파드 Ready·readiness 실패 이벤트 → 앱 로그 → 클러스터 밖 의존성(`services[].dependencies`) |
 | CrashLoopBackOff | `describe pod`의 `lastState`(reason, exit code) → `logs --previous` → 참조하는 ConfigMap·Secret **키 존재 여부**(값은 보지 않음) → `rollout history`로 직전 변경 → 리소스 limits |
 | OOMKilled·메모리 | `lastState.terminated.reason` → limits 대비 `top pod` → 노드 `MemoryPressure` → 장애 시각과 `schedules` 대조 |
-| Pending | 이벤트의 `FailedScheduling` 사유 → 노드 allocatable 대비 requests 합 → taint/toleration, nodeSelector/affinity → PVC가 Pending인지 |
+| Pending | 이벤트의 `FailedScheduling` 사유 → 노드 allocatable 대비 requests 합 → taint/toleration, nodeSelector/affinity → PVC가 Pending인지. `FailedScheduling` 이벤트도 `PodScheduled` 컨디션도 없으면 스케줄러가 시도하지 못한 것이다 — 스케줄 가능한 노드 수와 스케줄러 상태부터 본다 |
 | ImagePullBackOff | 이벤트 메시지 → 이미지 이름·태그 → `imagePullSecrets` **이름** 존재 여부 → 레지스트리 접근 경로 |
 | replicas가 갑자기 줄거나 0 | 아래 3. 변경 이력의 `managedFields` → HPA 상태(`describe hpa`) → GitOps·배포 도구의 동기화 기록 |
 | 노드 NotReady | 노드 conditions와 이벤트 → 같은 노드풀의 다른 노드와 비교 → 노드에 있던 파드의 재배치 상태 → 노드 내부는 `node_access`. 노드 재기동·교체는 플랫폼 작업이라 안내만 한다 |
 | 노드 디스크·ephemeral-storage | 노드 `DiskPressure`, eviction 이벤트 → 어떤 파드가 쫓겨났는지 → 이미지·컨테이너 로그 누적 여부(`node_access`) |
+| PVC Pending | PVC 이벤트의 `FailedBinding`·`ProvisioningFailed` 메시지 → `storageClassName`과 기본 StorageClass 존재 여부 → CSI 드라이버 상태 |
 | PVC 용량 부족 | PVC 요청 용량과 StorageClass `allowVolumeExpansion` → 사용률은 메트릭(`metrics`) 우선, 없으면 컨테이너 안 `df`(exec라 승인 필요) → 증가 추세로 남은 기간 추정 |
 | LB·Ingress 경유만 실패 | 직접 접근(port-forward, 대상이 민감하면 승인)과 경유 접근 비교 → 각 홉의 TLS(SNI, 기본 인증서, TLS Secret **이름**) → 헬스체크 경로 → NetworkPolicy·보안그룹 |
 
@@ -73,11 +74,23 @@
   사라져 있다. 없다고 "변경 없음"이 아니다.
 - 롤아웃: `kubectl rollout history <워크로드> -n <ns>`
 - 누가 바꿨는지: `kubectl get <워크로드> -n <ns> --show-managed-fields -o yaml`에서
-  해당 필드(예: `spec.replicas`)를 마지막으로 바꾼 `manager`와 `time`을 본다.
-  manager 이름으로 변경 주체를 가린다. 예: `kubectl-scale`(kubectl scale),
-  `kubectl-client-side-apply`(kubectl apply), `helm`(Helm 릴리스),
-  `kube-controller-manager`(HPA 등 컨트롤러). 이름은 도구·버전에 따라 다르므로
-  예시로만 쓰고, 실제 값을 그대로 근거로 적는다.
+  해당 필드(예: `f:spec` 아래 `f:replicas`)를 가진 항목의 `manager`, `operation`,
+  `subresource`, `time`을 **함께** 본다. manager 이름만으로는 구분이 안 되는 경우가 있다.
+  kubectl v1.34에서 확인한 값은 다음과 같다.
+
+  | 변경 | manager | operation | subresource |
+  |---|---|---|---|
+  | `kubectl scale` | `kubectl` | Update | `scale` |
+  | `kubectl apply --server-side` | `kubectl` | Apply | 없음 |
+  | `kubectl apply` (client-side) | `kubectl-client-side-apply` | Update | 없음 |
+  | `kubectl patch` | `kubectl-patch` | Update | 없음 |
+  | `kubectl rollout restart` | `kubectl-rollout` (`restartedAt` 어노테이션) | Update | 없음 |
+  | `kubectl set image` 등 | `kubectl-set` | Update | 없음 |
+
+  컨트롤러(HPA·Helm·GitOps 도구)와 다른 버전의 kubectl은 이름이 다를 수 있다. 예:
+  배포판에 따라 컨트롤러 manager가 `kube-controller-manager`가 아닐 수 있다. 표에 없는
+  이름은 그대로 근거로 적고 추정으로 바꾸지 않는다. 각 manager는 마지막 변경 시각만
+  남으므로 이전 이력은 `rollout history`와 이벤트로 보충한다.
 
 **클러스터 밖**
 
